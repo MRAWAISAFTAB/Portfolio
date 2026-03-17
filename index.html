@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Awais Aftab — Full Stack Developer</title>
-<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" href="icon-192.png" sizes="any">
 <link rel="icon" href="icon-192.png" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#080808">
@@ -415,15 +415,16 @@ footer a:hover { color:var(--white); }
   </div>
   <div class="c-right rv">
     <h3>Send a message</h3>
-    <div class="fg"><label>Name</label><input type="text" placeholder="Your name"><div class="fl"></div></div>
-    <div class="fg"><label>Email</label><input type="email" placeholder="your@email.com"><div class="fl"></div></div>
+    <div class="fg"><label>Name</label><input id="from_name" type="text" placeholder="Your name"><div class="fl"></div></div>
+    <div class="fg"><label>Email</label><input id="from_email" type="email" placeholder="your@email.com"><div class="fl"></div></div>
     <div class="fg">
       <label>Project type</label>
-      <select><option value="">Select...</option><option>Landing Page</option><option>Full Stack Web App</option><option>React Frontend</option><option>Backend / API</option><option>Bug Fix</option><option>Other</option></select>
+      <select id="project_type"><option value="">Select...</option><option>Landing Page</option><option>Full Stack Web App</option><option>React Frontend</option><option>Backend / API</option><option>Bug Fix</option><option>Other</option></select>
       <div class="fl"></div>
     </div>
-    <div class="fg"><label>Message</label><textarea placeholder="Tell me about your project..."></textarea><div class="fl"></div></div>
-    <button class="sbtn" onclick="alert('Connect this to Formspree or EmailJS in your live deployment.')">Send Message <span class="arr">&#8594;</span></button>
+    <div class="fg"><label>Message</label><textarea id="message" placeholder="Tell me about your project..."></textarea><div class="fl"></div></div>
+    <button class="sbtn" id="send-btn" onclick="sendEmail()">Send Message <span class="arr" id="btn-arrow">&#8594;</span></button>
+    <p id="form-status" style="font-family:var(--mono);font-size:.7rem;margin-top:1rem;letter-spacing:.08em;color:var(--g5);opacity:0;transition:opacity .3s;min-height:1.2em;"></p>
   </div>
 </section>
 
@@ -488,6 +489,62 @@ const capObs=new IntersectionObserver(entries=>{
   });
 },{threshold:0.3});
 document.querySelectorAll('.cap-item').forEach(el=>capObs.observe(el));
+
+// EmailJS
+function sendEmail(){
+  const btn = document.getElementById('send-btn');
+  const status = document.getElementById('form-status');
+  const name = document.getElementById('from_name').value.trim();
+  const email = document.getElementById('from_email').value.trim();
+  const project = document.getElementById('project_type').value;
+  const msg = document.getElementById('message').value.trim();
+
+  if(!name||!email||!msg){
+    status.textContent = 'Please fill in name, email and message.';
+    status.style.color = '#ff6b6b';
+    status.style.opacity = '1';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'default';
+  document.getElementById('btn-arrow').textContent = '...';
+
+  const templateParams = {
+    from_name: name,
+    from_email: email,
+    project_type: project || 'Not specified',
+    message: msg,
+    reply_to: email
+  };
+
+  emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+    .then(() => {
+      status.textContent = 'Message sent. I will get back to you shortly.';
+      status.style.color = 'var(--g6)';
+      status.style.opacity = '1';
+      btn.textContent = 'Sent';
+      document.getElementById('from_name').value = '';
+      document.getElementById('from_email').value = '';
+      document.getElementById('project_type').value = '';
+      document.getElementById('message').value = '';
+    })
+    .catch(err => {
+      console.error('EmailJS error:', err);
+      status.textContent = 'Something went wrong. Try emailing me directly.';
+      status.style.color = '#ff6b6b';
+      status.style.opacity = '1';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'none';
+      document.getElementById('btn-arrow').textContent = '→';
+    });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  emailjs.init('YOUR_PUBLIC_KEY');
 </script>
 </body>
 </html>
